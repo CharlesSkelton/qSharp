@@ -135,6 +135,9 @@ namespace qSharp
                 case QType.Lambda:
                     WriteLambda(obj as QLambda);
                     return;
+                case QType.Projection:
+                    WriteProjection(obj as QProjection);
+                    return;
                 case QType.Error:
                     WriteError(obj as Exception);
                     return;
@@ -174,6 +177,10 @@ namespace qSharp
                     writer.Write((byte)obj);
                     return;
                 case QType.Guid:
+                    if (protocolVersion < 3)
+                    {
+                        throw new QWriterException("kdb+ protocol version violation: guid not supported pre kdb+ v3.0");
+                    }
                     WriteGuid((Guid)obj);
                     return;
                 case QType.Short:
@@ -262,6 +269,10 @@ namespace qSharp
                     }
                 case QType.GuidList:
                     {
+                        if (protocolVersion < 3)
+                        {
+                            throw new QWriterException("kdb+ protocol version violation: guid not supported pre kdb+ v3.0");
+                        }
                         var _list = list as Guid[];
                         if (_list != null)
                             foreach (Guid a in _list)
@@ -473,23 +484,18 @@ namespace qSharp
 
         private void WriteLambda(QLambda l)
         {
-            if (l.Parameters == null || l.Parameters.Length == 0)
+            writer.Write((sbyte)QType.Lambda);
+            writer.Write((byte)0);
+            WriteString(l.Expression.ToCharArray());
+        }
+
+        private void WriteProjection(QProjection p)
+        {
+            writer.Write((sbyte)QType.LambdaPart);
+            writer.Write(p.Parameters.Length);
+            foreach (object parameter in p.Parameters)
             {
-                writer.Write((sbyte)QType.Lambda);
-                writer.Write((byte)0);
-                WriteString(l.Expression.ToCharArray());
-            }
-            else
-            {
-                writer.Write((sbyte)QType.LambdaPart);
-                writer.Write(l.Parameters.Length + 1);
-                writer.Write((sbyte)QType.Lambda);
-                writer.Write((byte)0);
-                WriteString(l.Expression.ToCharArray());
-                foreach (object p in l.Parameters)
-                {
-                    WriteObject(p);
-                }
+                WriteObject(parameter);
             }
         }
 

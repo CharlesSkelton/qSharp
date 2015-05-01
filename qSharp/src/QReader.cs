@@ -35,15 +35,19 @@ namespace qSharp
         private byte[] rawData;
         private EndianBinaryReader reader;
 
+        private int maxReadingChunk;
+
         /// <summary>
         ///     Initializes a new QReader instance.
         /// </summary>
         /// <param name="stream">Input stream containing serialized messages</param>
         /// <param name="encoding">Encoding used for deserialization of string data</param>
-        public QReader(Stream stream, Encoding encoding)
+        /// <param name="maxReadingChunk">Maxium number of bytes read in a single chunk from stream</param>
+        public QReader(Stream stream, Encoding encoding, int maxReadingChunk)
         {
             this.stream = stream;
             this.encoding = encoding;
+            this.maxReadingChunk = maxReadingChunk;
         }
 
         /// <summary>
@@ -120,7 +124,7 @@ namespace qSharp
             int read = 0;
             int chunk;
 
-            while ((chunk = stream.Read(buffer, read, buffer.Length - read)) > 0)
+            while ((chunk = stream.Read(buffer, read, Math.Min(maxReadingChunk, buffer.Length - read))) > 0)
             {
                 read += chunk;
 
@@ -240,14 +244,21 @@ namespace qSharp
                     return ReadList(qtype);
                 case QType.GeneralList:
                     return ReadGeneralList();
-                case QType.NullItem:
-                    return null;
                 case QType.Error:
                     return ReadError();
                 case QType.Lambda:
-                    return ReadLambda();
-                case QType.LambdaPart:
-                    return ReadLambdaPart();
+                case QType.Projection:
+                case QType.UnaryPrimitiveFunc:
+                case QType.BinaryPrimitiveFunc:
+                case QType.TernaryOperatorFunc:
+                case QType.CompositionFunc:
+                case QType.AdverbFunc106:
+                case QType.AdverbFunc107:
+                case QType.AdverbFunc108:
+                case QType.AdverbFunc109:
+                case QType.AdverbFunc110:
+                case QType.AdverbFunc111:
+                    return ReadFunction(qtype);
                 case QType.Dictionary:
                     return ReadDictionary();
                 case QType.Table:
@@ -492,29 +503,53 @@ namespace qSharp
             throw new QException(ReadSymbol());
         }
 
-        private QLambda ReadLambda()
+        private QFunction ReadFunction(QType qtype)
         {
-            ReadSymbol();
-            var expression = (char[])ReadObject();
-            if (expression == null)
+            switch (qtype)
             {
-                throw new QReaderException("Malformed lambda expression");
+                case QType.Lambda:
+                    {
+                        reader.ReadSymbol(encoding); // ignore context
+                        var expression = (char[])ReadObject();
+                        return new QLambda(new string(expression));
+                    }
+                case QType.Projection:
+                    {
+                        int length = reader.ReadInt32();
+                        var parameters = new object[length];
+                        for (int i = 0; i < length; i++)
+                        {
+                            parameters[i] = ReadObject();
+                        }
+                        return new QProjection(parameters);
+                    }
+                case QType.UnaryPrimitiveFunc:
+                    {
+                        var code = reader.ReadByte();
+                        return code == 0 ? null : QFunction.Create((byte)qtype);
+                    }
+                case QType.BinaryPrimitiveFunc:
+                case QType.TernaryOperatorFunc:
+                    {
+                        var code = reader.ReadByte(); // ignore
+                        return QFunction.Create((byte)qtype);
+                    }
+                case QType.CompositionFunc:
+                    {
+                        int length = reader.ReadInt32();
+                        var parameters = new object[length];
+                        for (int i = 0; i < length; i++)
+                        {
+                            parameters[i] = ReadObject();
+                        }
+                        return QFunction.Create((byte)qtype);
+                    }
+                default:
+                    {
+                        ReadObject(); // ignore
+                        return QFunction.Create((byte)qtype);
+                    }
             }
-            return new QLambda(new string(expression));
-        }
-
-        private QLambda ReadLambdaPart()
-        {
-            int length = reader.ReadInt32() - 1;
-            QLambda lambda = ReadLambda();
-            var parameters = new object[length];
-
-            for (int i = 0; i < length; i++)
-            {
-                parameters[i] = ReadObject();
-            }
-
-            return new QLambda(lambda.Expression, parameters);
         }
 
         private object ReadDictionary()
@@ -525,6 +560,10 @@ namespace qSharp
             if (keys is Array && values is Array)
             {
                 return new QDictionary(keys as Array, values as Array);
+            }
+            if (keys is Array && values is QTable)
+            {
+                return new QDictionary(keys as Array, values as QTable);
             }
             if (keys is QTable && values is QTable)
             {

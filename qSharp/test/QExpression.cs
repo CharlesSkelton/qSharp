@@ -98,10 +98,15 @@ namespace qSharp.test
                             {"3.233 6.46", new Double[] {3.233, 6.46}},
 
                             {"(1;`bcd;\"0bc\";5.5e)", new object[] {1, "bcd", "0bc".ToCharArray(), (float) 5.5}},
+                            {"(42;::;`foo)", new object[] { 42, null, "foo" }},
                             {"(enlist 1h; 2; enlist 3j)", new object[] {new short[] {1}, 2, new long[] {3}}},
                             {"(2;`bcd;\"0bc\";5.5e)", new object[] {1, "bcd", "0bc".ToCharArray(), (Single) 5.5}},
                             {"(enlist 2h; 2; enlist 3j)", new object[] {new Int16[] {1}, 2, new long[] {3}}},
                             {"`the`quick`brown`fox", new[] {"the", "quick", "brown", "fox"}},
+                            {"``quick``fox", new[] {"", "quick", "", "fox" }},
+                            {"``", new[] {"", ""}},
+                            {"(\"quick\"; \"brown\"; \"fox\"; \"jumps\"; \"over\"; \"a lazy\"; \"dog\")", new object[] {"quick".ToCharArray(), "brown".ToCharArray(), "fox".ToCharArray(), "jumps".ToCharArray(), "over".ToCharArray(), "a lazy".ToCharArray(), "dog".ToCharArray() }},
+                            {"(\"quick\"; \"brown\"; \"fox\")", new char[][] {"quick".ToCharArray(), "brown".ToCharArray(), "fox".ToCharArray() }},
                             {
                                 "2000.01.04D05:36:57.600 0Np",
                                 new[] {new QTimestamp(279417600000000), new QTimestamp(long.MinValue)}
@@ -118,9 +123,17 @@ namespace qSharp.test
                             {"12:04:59.123 0Nt", new[] {new QTime(43499123), new QTime(int.MinValue)}},
                             {"::", null},
                             {"{x+y}", new QLambda("{x+y}")},
-                            {"{x+y}[3]", new QLambda("{x+y}", new object[] {3})},
+                            {"{x+y}[3]", new QProjection( new object[]{new QLambda("{x+y}"), 3})},
                             {"(enlist `a)!(enlist 1)", new QDictionary(new[] {"a"}, new[] {1})},
                             {"1 2!`abc`cdefgh", new QDictionary(new[] {1, 2}, new[] {"abc", "cdefgh"})},
+                            {
+                                "`abc`def`gh!([] one: 1 2 3; two: 4 5 6)", 
+                                new QDictionary(new string[] { "abc", "def", "gh" },
+                                                new QTable(new[] {"one", "two"}, new object[] {new[] {1L, 2L, 3L}, new[] {4L, 5L, 6L}}))
+                            },
+                            {"(`x`y!(`a;2))", new QDictionary(new string[] {"x", "y"},
+                                                              new object[] {"a", 2})
+                            },
                             {
                                 "(1;2h;3.3;\"4\")!(`one;2 3;\"456\";(7;8 9))",
                                 new QDictionary(new object[] {1, (short) 2, 3.3, '4'},
@@ -151,6 +164,16 @@ namespace qSharp.test
                                 "flip `name`iq!(`Dent`Beeblebrox`Prefect;98 42 126)",
                                 new QTable(new[] {"name", "iq"},
                                            new object[] {new[] {"Dent", "Beeblebrox", "Prefect"}, new[] {98, 42, 126}})
+                            },
+                            {
+                                "flip `name`iq`grade!(`Dent`Beeblebrox`Prefect;98 42 126;\"a c\")",
+                                new QTable(new[] {"name", "iq", "grade"},
+                                           new object[] {new[] {"Dent", "Beeblebrox", "Prefect"}, new[] {98, 42, 126}, new[] {'a', ' ', 'c'}})
+                            },
+                            {
+                                "flip `name`iq`fullname!(`Dent`Beeblebrox`Prefect;98 42 126;(\"Arthur Dent\"; \"Zaphod Beeblebrox\"; \"Ford Prefect\"))",
+                                new QTable(new[] {"name", "iq", "fullname"},
+                                           new object[] {new[] {"Dent", "Beeblebrox", "Prefect"}, new[] {98, 42, 126}, new object[]{"Arthur Dent".ToCharArray(), "Zaphod Beeblebrox".ToCharArray(), "Ford Prefect".ToCharArray()} })
                             },
                             {
                                 "([] sc:1 2 3; nsc:(1 2; 3 4; 5 6 7))",
@@ -260,10 +283,15 @@ namespace qSharp.test
                             {"3.233 6.46", new Double[] {3.233, 6.46}},
 
                             {"(1;`bcd;\"0bc\";5.5e)", new object[] {(long) 1, "bcd", "0bc".ToCharArray(), (float) 5.5}},
+                            {"(42;::;`foo)", new object[] { 42L, null, "foo" }},
                             {"(enlist 1h; 2; enlist 3j)", new object[] {new short[] {1}, (long) 2, new long[] {3}}},
                             {"(2;`bcd;\"0bc\";5.5e)", new object[] {1, "bcd", "0bc".ToCharArray(), (Single) 5.5}},
                             {"(enlist 2h; 2; enlist 3j)", new object[] {new Int16[] {1}, 2, new long[] {3}}},
                             {"`the`quick`brown`fox", new[] {"the", "quick", "brown", "fox"}},
+                            {"``quick``fox", new[] {"", "quick", "", "fox" }},
+                            {"``", new[] {"", ""}},
+                            {"(\"quick\"; \"brown\"; \"fox\"; \"jumps\"; \"over\"; \"a lazy\"; \"dog\")", new object[] {"quick".ToCharArray(), "brown".ToCharArray(), "fox".ToCharArray(), "jumps".ToCharArray(), "over".ToCharArray(), "a lazy".ToCharArray(), "dog".ToCharArray() }},
+                            {"(\"quick\"; \"brown\"; \"fox\")", new char[][] {"quick".ToCharArray(), "brown".ToCharArray(), "fox".ToCharArray() }},
                             {
                                 "2000.01.04D05:36:57.600 0Np",
                                 new[] {new QTimestamp(279417600000000), new QTimestamp(long.MinValue)}
@@ -280,9 +308,17 @@ namespace qSharp.test
                             {"12:04:59.123 0Nt", new[] {new QTime(43499123), new QTime(int.MinValue)}},
                             {"::", null},
                             {"{x+y}", new QLambda("{x+y}")},
-                            {"{x+y}[3]", new QLambda("{x+y}", new object[] {(long) 3})},
+                            {"{x+y}[3]", new QProjection( new object[] {new QLambda("{x+y}"), (long) 3})},
                             {"(enlist `a)!(enlist 1)", new QDictionary(new[] {"a"}, new long[] {1})},
                             {"1 2!`abc`cdefgh", new QDictionary(new long[] {1, 2}, new[] {"abc", "cdefgh"})},
+                                                        {
+                                "`abc`def`gh!([] one: 1 2 3; two: 4 5 6)", 
+                                new QDictionary(new string[] { "abc", "def", "gh" },
+                                                new QTable(new[] {"one", "two"}, new object[] {new[] {1L, 2L, 3L}, new[] {4L, 5L, 6L}}))
+                            },
+                            {"(`x`y!(`a;2))", new QDictionary(new string[] {"x", "y"},
+                                                              new object[] {"a", 2L})
+                            },
                             {
                                 "(1;2h;3.3;\"4\")!(`one;2 3;\"456\";(7;8 9))",
                                 new QDictionary(new object[] {(long) 1, (short) 2, 3.3, '4'},
@@ -317,6 +353,16 @@ namespace qSharp.test
                                 new QTable(new[] {"name", "iq"},
                                            new object[]
                                                {new[] {"Dent", "Beeblebrox", "Prefect"}, new long[] {98, 42, 126}})
+                            },
+                            {
+                                "flip `name`iq`grade!(`Dent`Beeblebrox`Prefect;98 42 126;\"a c\")",
+                                new QTable(new[] {"name", "iq", "grade"},
+                                           new object[] {new[] {"Dent", "Beeblebrox", "Prefect"}, new long[] {98, 42, 126}, new[] {'a', ' ', 'c'}})
+                            },
+                            {
+                                "flip `name`iq`fullname!(`Dent`Beeblebrox`Prefect;98 42 126;(\"Arthur Dent\"; \"Zaphod Beeblebrox\"; \"Ford Prefect\"))",
+                                new QTable(new[] {"name", "iq", "fullname"},
+                                           new object[] {new[] {"Dent", "Beeblebrox", "Prefect"}, new long[] {98, 42, 126}, new object[]{"Arthur Dent".ToCharArray(), "Zaphod Beeblebrox".ToCharArray(), "Ford Prefect".ToCharArray()} })
                             },
                             {
                                 "([] sc:1 2 3; nsc:(1 2; 3 4; 5 6 7))",
@@ -408,7 +454,15 @@ namespace qSharp.test
 
         public object GetReferenceObject(string version, string key)
         {
-            return reference[version][key];
+            try
+            {
+                return reference[version][key];
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine(string.Format("Cannot retrieve key: {0}", key));
+                throw e;
+            }
         }
 
         private static byte[] StringToByteArray(String hex)

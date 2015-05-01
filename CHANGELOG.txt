@@ -1,8 +1,60 @@
 ------------------------------------------------------------------------------
+  qSharp 2.1.1 [2015.03.23]
+------------------------------------------------------------------------------
+
+  - Fix: sanity check against protocol version for guids
+  - Add serialization for type: char[][]
+
+------------------------------------------------------------------------------
+  qSharp 2.1.0 [2014.10.01]
+------------------------------------------------------------------------------
+
+  - Redesigned lambdas and projections handling
+
+------------------------------------------------------------------------------
+  qSharp 2.0.6 [2014.09.11]
+------------------------------------------------------------------------------
+
+  - Fix: reading of generic null (::) embedded in lists
+
+------------------------------------------------------------------------------
+  qSharp 2.0.5 [2014.09.01]
+------------------------------------------------------------------------------
+
+  - Rewrite QBasicConnection.Open() and QBasicConnection.Close() methods to use 
+    QBasicConnection.IsConnected() instead of null check
+
+------------------------------------------------------------------------------
+  qSharp 2.0.4 [2014.07.29]
+------------------------------------------------------------------------------
+
+  - QListener pushes all types of exceptions via error event handler
+
+------------------------------------------------------------------------------
+  qSharp 2.0.3 [2014.06.10]
+------------------------------------------------------------------------------
+
+  - Fix: behaviour of toString and fromString methods in QTime, QSecond
+         and QMinute types for dates outside of 0-24 hours scope
+
+------------------------------------------------------------------------------
+  qSharp 2.0.2 [2014.06.06]
+------------------------------------------------------------------------------
+
+  - Improve performance while retrieving large data samples
+  - API: configurable maximum size of data chunk during data retrieval
+
+------------------------------------------------------------------------------
+  qSharp 2.0.1 [2014.05.26]
+------------------------------------------------------------------------------
+
+  - Fix: creation of q dictionary with values represented as table
+
+------------------------------------------------------------------------------
   qSharp 2.0 [2014.04.02]
 ------------------------------------------------------------------------------
 
   - Support for kdb+ protocol and types: v3.0, v2.6, v<=2.5
   - Synchronous and asynchronous queries
   - Convenient asynchronous callbacks mechanism
-  - Logging of the raw protocol data in case of parsing failure. 
+  - Logging of the raw protocol data in case of parsing failure

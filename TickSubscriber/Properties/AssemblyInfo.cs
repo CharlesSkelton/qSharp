@@ -9,7 +9,7 @@
 //------------------------------------------------------------------------------
 
 [assembly: System.Reflection.AssemblyCompany("exxeleron")]
-[assembly: System.Reflection.AssemblyTitle("qSharp: Subscriber")]
+[assembly: System.Reflection.AssemblyTitle("qSharp: TickSubscriber")]
 [assembly: System.Reflection.AssemblyProduct("qSharp")]
 [assembly: System.Reflection.AssemblyCopyright("Copyright © exxeleron 2011-2015")]
 [assembly: System.Reflection.AssemblyVersion("2.1.0.0")]
